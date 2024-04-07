@@ -6,12 +6,12 @@
 
 int main() {
 
-    //Tokenizer t;
+    Tokenizer t;
     //std::cout << t.tokenize("cba|bc*e|f|k");
-
-    AST tree;
-    tree.make_tree("c|d|e");
-    std::cout << tree;
+    std::string str = t.tokenize("");
+    std::cout << str << std::endl;
+    auto pair = parse_regex(str.begin().base());
+    printBT(pair.first);
     //tree.make_tree("(d)?");
     //std::cout << tree;
 }
