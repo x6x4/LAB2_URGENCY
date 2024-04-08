@@ -7,11 +7,10 @@
 int main() {
 
     Tokenizer t;
-    //std::cout << t.tokenize("cba|bc*e|f|k");
-    std::string str = t.tokenize("");
+    std::string str = t.tokenize("(a|b)*abb");
+    //std::string str = t.tokenize("ah|g*|be");
     std::cout << str << std::endl;
-    auto pair = parse_regex(str.begin().base());
-    printBT(pair.first);
-    //tree.make_tree("(d)?");
-    //std::cout << tree;
+    AST tree (str);
+    tree.printBT();
+    tree.middle_work();
 }
