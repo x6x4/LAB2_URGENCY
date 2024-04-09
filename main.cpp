@@ -3,6 +3,8 @@
 #include <iostream>
 
 int main() {
-    Regex().compile("(a|b)*abb");
-    
+    std::string str;
+    std::cin >> str;
+
+    Regex().compile(str);
 }

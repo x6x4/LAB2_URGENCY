@@ -12,9 +12,12 @@ DFA DFA_sets::makeDFA(const ASTdata& data) {
     tran_table Dtran;
     std::size_t cur_state = 0;
     fstates Fstates;
+    std::cout << "Followpos:\n" << followpos << std::endl;
     
     for (auto &T : Dstates) {
+        
         if (!T.second.first) {
+            std::cout << "T:" << T.first << std::endl;
             T.second.first = true;
 
             for (const auto &char_vecpos_entry : data.leaf_map) {
@@ -24,11 +27,14 @@ DFA DFA_sets::makeDFA(const ASTdata& data) {
                         U += followpos.at(pos-1);
                     }
                 }
+                std::cout << "U:" << U;
 
                 if (!U.empty()) {
                     auto U_entry =
                         Dstates.insert({U, {false, ++cur_state}});
                     if (!U_entry.second) cur_state--;
+                    if (vec_find(T.first, data.leafCount))
+                        Fstates.push_back(T.second.second);
                     else if (vec_find(U, data.leafCount))
                         Fstates.push_back(cur_state);
                     
@@ -38,6 +44,8 @@ DFA DFA_sets::makeDFA(const ASTdata& data) {
             }
         }
     }
+
+    std::cout << std::endl << Dtran;
 
     return DFA(Dtran, Fstates);
 }

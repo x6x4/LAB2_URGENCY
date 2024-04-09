@@ -10,6 +10,8 @@ public:
         std::string regex_str = Tokenizer().tokenize(regex);
 
         AST ast(regex_str.begin().base());
+        ast.printAST();
+        ast.printLeafMap();
         DFA_sets sets(ast.getData());
         
         DFA dfa = sets.makeDFA(ast.getData());
