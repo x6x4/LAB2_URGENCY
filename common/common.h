@@ -3,6 +3,7 @@
 #include <map>
 #include <vector>
 #include <ostream>
+#include <algorithm>
 
 using leafMap = std::map<char, std::vector<std::size_t>>;
 
@@ -47,7 +48,7 @@ void operator+=
 
 template<typename T> 
 std::ostream &operator<<
-(std::ostream &os, std::vector<T> vec) {
+(std::ostream &os, const std::vector<T> &vec) {
     os << ' ';
     for (const T &e : vec) {
         os << e << ' ';
@@ -55,9 +56,15 @@ std::ostream &operator<<
     return os << '\n';
 }
 
+template<typename T1, typename T2>
+std::ostream &operator<<
+(std::ostream &os, const std::pair<T1, T2> &para) {
+    return os << para.first << ' ' <<para.second;
+}
+
 template<typename T1, typename T2> 
 std::ostream &operator<<
-(std::ostream &os, std::map<T1, T2> mapa) {
+(std::ostream &os, const std::map<T1, T2> &mapa) {
     os << ' ';
     for (const auto &e : mapa) {
         os << e.first << ' ' << e.second << '\n';
@@ -65,8 +72,8 @@ std::ostream &operator<<
     return os << '\n';
 }
 
-template<typename T1, typename T2>
-std::ostream &operator<<
-(std::ostream &os, std::pair<T1, T2> para) {
-    return os << para.first << ' ' <<para.second;
+template<typename T>
+bool vec_find (const std::vector<T>& vec, const T& key) {
+    return (std::find(vec.begin(), vec.end(), key) != vec.end());
 }
+

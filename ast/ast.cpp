@@ -123,9 +123,7 @@ void printBT_Base(Node *node, std::ofstream &file);
 
 void AST::printAST() {
 
-    std::cout << data.nodeCount << std::endl;
-
-    std::ofstream file("tree_output.dot");
+    std::ofstream file("tree_output/tree_output.dot");
     if (!file) {
         std::cout << "Error creating file" << std::endl;
         return;
@@ -140,7 +138,7 @@ void AST::printAST() {
 
     file.close();
 
-    system("dot -Tpng tree_output.dot -o tree_output.png");
+    system("dot -Tpng tree_output/tree_output.dot -o tree_output/tree_output.png");
 }
 
 void printBT_Base(Node *node, std::ofstream &file) {

@@ -3,20 +3,23 @@
 
 
 using state = std::vector<std::size_t>;
-using tran_table = std::map<std::pair<state, char>, state>;
+using tran_table = std::map<std::pair<std::size_t, char>, std::size_t>;
+using fstates = std::vector<std::size_t>;
 
 class DFA {
 
 public:
-    DFA(std::vector<state> _Dstate, tran_table _Dtran) :
-        Dstate(_Dstate), Dtran(_Dtran) {};
+    DFA(tran_table _Dtran, fstates _FStates) : Dtran(_Dtran), FStates(_FStates) {};
+
+    void printDFA();
 
 private:    
-    std::vector<state> Dstate;
     tran_table Dtran;
+    fstates FStates;
+
+    void printDFA_Base(std::ofstream &file);
     
     friend std::ostream &operator<< (std::ostream &os, const DFA &dfa) {
-        os << dfa.Dstate << '\n';
         os << dfa.Dtran << '\n'; 
         return os;     
     };

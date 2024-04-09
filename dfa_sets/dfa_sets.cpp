@@ -1,40 +1,45 @@
 #include "dfa_sets.h"
-#include <algorithm>
+#include <cstddef>
+#include <fstream>
+#include <iostream>
+#include <vector>
+
 
 DFA DFA_sets::makeDFA(const ASTdata& data) {
 
     state s0 = firstpos.at(data.root->num-1);
-    std::map<state, bool> Dstates = {{s0, false}};
+    std::map<state, std::pair<bool, std::size_t>> Dstates = {{s0, {false, 0}}};
     tran_table Dtran;
+    std::size_t cur_state = 0;
+    fstates Fstates;
     
     for (auto &T : Dstates) {
-        if (!T.second) {
-            T.second = true;
+        if (!T.second.first) {
+            T.second.first = true;
 
-            for (const auto &char_entry : data.leaf_map) {
+            for (const auto &char_vecpos_entry : data.leaf_map) {
                 state U;
                 for (const auto &pos : T.first) {
-                    if (std::find(char_entry.second.begin(), 
-                        char_entry.second.end(), pos)!= char_entry.second.end()) {
-                            U += followpos.at(pos-1);
+                    if (vec_find(char_vecpos_entry.second, pos)) {
+                        U += followpos.at(pos-1);
                     }
                 }
 
                 if (!U.empty()) {
-                    if (Dstates.find(U) == Dstates.end()) {
-                        Dstates.insert({U, false});
-                    }
-                    Dtran.insert({{T.first, char_entry.first}, U});
+                    auto U_entry =
+                        Dstates.insert({U, {false, ++cur_state}});
+                    if (!U_entry.second) cur_state--;
+                    else if (vec_find(U, data.leafCount))
+                        Fstates.push_back(cur_state);
+                    
+                    Dtran.insert({{T.second.second, char_vecpos_entry.first}, 
+                        U_entry.first->second.second});
                 }
             }
         }
     }
 
-    std::vector<state> Dstate;
-    for (const auto &e : Dstates) 
-        Dstate.push_back(e.first);
-
-    return DFA(Dstate, Dtran);
+    return DFA(Dtran, Fstates);
 }
 
 
@@ -164,13 +169,53 @@ std::ostream &operator<< (std::ostream &os, const DFA_sets &sets) {
     os << sets.nullable << std::endl;
 
     os << "Firstpos:\n";
-    os << sets.firstpos << std::endl;
+    os << sets.firstpos;
 
     os << "Lastpos:\n";
-    os << sets.lastpos << std::endl;
+    os << sets.lastpos;
 
     os << "Followpos:\n";
-    os << sets.followpos << std::endl;
+    os << sets.followpos;
 
     return os;
+}
+
+
+
+void DFA::printDFA() {
+    std::ofstream file("dfa_output.dot");
+    if (!file) {
+        std::cout << "Error creating file" << std::endl;
+        return;
+    }
+
+    file << "digraph DFA {" << std::endl;
+    file << "rankdir=\"LR\"" << std::endl;
+    file << "node [shape=circle];" << std::endl;
+
+    printDFA_Base(file);
+
+    file << "}" << std::endl;
+
+    file.close();
+
+    system("dot -Tpng dfa_output.dot -o dfa_output.png");
+}
+
+void DFA::printDFA_Base(std::ofstream &file) {
+
+
+    for (const auto &entry : Dtran) {
+        file << entry.first.first << " -> " << entry.second;
+        file << " [label=\"" << entry.first.second 
+            << "\"]" << ";" << std::endl;
+    }
+
+    for (const auto &entry : FStates) 
+        file << entry << "[label=\"" << entry << "\"" 
+        << "shape=doublecircle" << "]" << ";" << std::endl;
+
+
+
+    
 }
