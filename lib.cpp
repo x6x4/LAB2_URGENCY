@@ -1,10 +1,67 @@
 
 #include "lib.h"
 #include <cstddef>
+#include <map>
 #include <stdexcept>
+#include <tuple>
+#include <utility>
 #include <vector>
 
 
+using state = std::vector<std::size_t>;
+
+void AST::compile() {
+    state s0 = firstpos.at(root->num-1);
+    std::map<state, bool> Dstates = {{s0, false}};
+    std::map<std::pair<state, char>, state> Dtran;
+    
+    for (auto &T : Dstates) {
+        if (!T.second) {
+            T.second = true;
+
+            for (const auto &char_entry : leaves) {
+                state U;
+                for (const auto &pos : T.first) {
+                    if (std::find(char_entry.second.begin(), 
+                        char_entry.second.end(), pos)!= char_entry.second.end()) {
+                            U += followpos.at(pos-1);
+                    }
+                }
+
+                if (!U.empty()) {
+                    if (Dstates.find(U) == Dstates.end()) {
+                        Dstates.insert({U, false});
+                    }
+                    Dtran.insert({{T.first, char_entry.first}, U});
+                }
+            }
+        }
+    }
+
+    std::vector<state> Dstate;
+    for (const auto &e : Dstates) 
+        Dstate.push_back(e.first);
+
+    for (const auto &s : Dstate) {
+        for (const auto &e1 : s)
+            std::cout << e1 << ' ';
+        std::cout << std::endl;
+    }
+    std::cout << std::endl << std::endl;
+
+    for (const auto &t : Dtran) {
+        for (const auto &e1 : t.first.first)
+            std::cout << e1 << ' ';
+        std::cout << std::endl;
+
+        std::cout << t.first.second << std::endl;
+
+        for (const auto &e1 : t.second)
+            std::cout << e1 << ' ';
+        std::cout << std::endl << std::endl;
+    }
+    std::cout << std::endl;
+}
 
 Node *get_leftmost (Node *_root);
 

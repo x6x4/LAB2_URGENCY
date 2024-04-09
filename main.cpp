@@ -13,4 +13,6 @@ int main() {
     AST tree (str);
     tree.printBT();
     tree.middle_work();
+    tree.printMap();
+    tree.compile();
 }

@@ -3,8 +3,11 @@
 #include <functional>
 #include <iostream>
 #include <fstream>
+#include <map>
 #include <string>
 #include <set>
+#include <utility>
+#include <vector>
 
 
 extern std::string unary;
@@ -43,7 +46,7 @@ struct Node {
     Node* par = nullptr;
 	char op;
     int num = 0;
-    int true_num = 0;
+    std::size_t true_num = 0;
 
     Node(Node* _left, Node* _right, char oper, std::size_t _num) 
     : left(_left), right(_right), op(oper), num(_num) {}
@@ -55,6 +58,7 @@ class AST {
     Node *root = nullptr;
     std::size_t nodeCount = 0;
     std::size_t leafCount = 0;
+    std::map<char, std::vector<std::size_t>> leaves;
 
 public:
 
@@ -70,6 +74,16 @@ public:
         
     void printBT();
     void middle_work();
+    void compile();
+    void printMap() {
+        for (const auto &e : leaves) {
+            std::cout << e.first << ' ';
+            for (const auto &e1 : e.second)
+                std::cout << e1 << ' ';
+            std::cout << std::endl;
+        }
+        std::cout << std::endl;
+    }
 
 private:
 
@@ -86,8 +100,16 @@ private:
         Node *newNode = new Node(_left, _right, oper, ++nodeCount);
         if (_left) _left->par = newNode;
         if (_right) _right->par = newNode;
-        if (non_special(oper)) 
+        if (non_special(oper)) {
             newNode->true_num = ++leafCount;
+        
+            auto entry = leaves.find(oper);
+            if (entry != leaves.end()) {
+                entry->second.push_back(newNode->true_num);
+            } else {
+                leaves.insert({oper, {newNode->true_num}});
+            }
+        }
         return newNode;
     }
 
