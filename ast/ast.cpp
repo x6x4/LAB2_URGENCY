@@ -20,9 +20,14 @@ std::string Tokenizer::tokenize(std::string my_regex) {
     for (size_t i = 0; i < my_regex.length(); i++) {
         tokenized.push_back(my_regex[i]);
         
-        if (i + 1 < my_regex.length() &&
-            ((non_special(my_regex[i]) && non_special(my_regex[i + 1])) ||
-            (is_unary(my_regex[i]) && non_special(my_regex[i + 1])))) {
+        if (i + 1 < my_regex.length() && (
+            (non_special(my_regex[i]) && non_special(my_regex[i + 1])) ||
+            (is_unary(my_regex[i]) && non_special(my_regex[i + 1])) ||
+            (is_unary(my_regex[i]) && my_regex[i + 1] == '(') || 
+            (non_special(my_regex[i]) && my_regex[i + 1] == '(') ||
+            (my_regex[i] == ')' && non_special(my_regex[i + 1])) ||
+            (my_regex[i] == ')' && my_regex[i + 1] == '(')
+            )) {
             tokenized.push_back('_');
         }
     }
@@ -89,23 +94,19 @@ std::pair<Node*, char*> AST::parse_R(char* start) {
     char* s = start;
     char c = *s;
     
-    // Parse any printable ASCII character
     if (std::isprint(c) && non_special(c)) {
-        s++; // Move past the parsed character
+        s++; 
         return {insert(nullptr, nullptr, c), s};
     } else if (c == '(') {
-        // Parse expression within parentheses
-        s++; // Skip '('
+        s++; 
         auto [expr, s2] = parse_regex(s);
         if (*s2 != ')') {
-            // Handle error for missing closing parenthesis
             throw std::runtime_error("Skobka gde pidor\n");
         } else {
-            s = s2 + 1; // Skip ')'
+            s = s2 + 1; 
             return {expr, s};
         }
     } else {
-        // Handle error for invalid character
         throw std::runtime_error("Nu ty i nasral\n");
     }
 }

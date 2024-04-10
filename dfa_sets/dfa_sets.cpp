@@ -2,45 +2,65 @@
 #include <cstddef>
 #include <fstream>
 #include <iostream>
+#include <utility>
 #include <vector>
 
+using dstates = std::vector<std::pair<state, std::size_t>>;
+
+std::pair<bool, std::size_t> dstates_find (const dstates& _dstates, const state& key) {
+    for (const auto &d : _dstates) {
+        if (d.first == key) return {true, d.second};
+    }
+    return {false, 0};
+}
 
 DFA DFA_sets::makeDFA(const ASTdata& data) {
 
     state s0 = firstpos.at(data.root->num-1);
-    std::map<state, std::pair<bool, std::size_t>> Dstates = {{s0, {false, 0}}};
+    
+    std::vector<std::pair<state, std::size_t>> unmarked = {{s0, 0}};
+    std::vector<std::pair<state, std::size_t>> marked = {{s0, 0}};
+
     tran_table Dtran;
     std::size_t cur_state = 0;
     fstates Fstates;
     std::cout << "Followpos:\n" << followpos << std::endl;
     
-    for (auto &T : Dstates) {
+    while (!unmarked.empty()) {
+        auto T = *(unmarked.end()-1);
+        marked.push_back(T);
+        unmarked.pop_back();
         
-        if (!T.second.first) {
-            std::cout << "T:" << T.first << std::endl;
-            T.second.first = true;
+        std::cout << "T:" << T.first << std::endl;
 
-            for (const auto &char_vecpos_entry : data.leaf_map) {
-                state U;
-                for (const auto &pos : T.first) {
-                    if (vec_find(char_vecpos_entry.second, pos)) {
-                        U += followpos.at(pos-1);
-                    }
+        for (const auto &leaf : data.leaf_map) {
+            state U;
+            for (const auto &pos : T.first) {
+                if (vec_find(leaf.second, pos)) {
+                    U += followpos.at(pos-1);
                 }
-                std::cout << "U:" << U;
+            }
+            std::cout << "U:" << U;
 
-                if (!U.empty()) {
-                    auto U_entry =
-                        Dstates.insert({U, {false, ++cur_state}});
-                    if (!U_entry.second) cur_state--;
-                    if (vec_find(T.first, data.leafCount))
-                        Fstates.push_back(T.second.second);
-                    else if (vec_find(U, data.leafCount))
-                        Fstates.push_back(cur_state);
-                    
-                    Dtran.insert({{T.second.second, char_vecpos_entry.first}, 
-                        U_entry.first->second.second});
+            if (!U.empty()) {
+
+                std::cout << "F:" << Fstates;
+
+                auto U_entry = dstates_find(unmarked, U);
+                auto U_entry2 = dstates_find(marked, U);
+                auto U_entry3 = U_entry2.first ? U_entry2 : U_entry;
+                if (!U_entry3.first) {
+                    unmarked.push_back({U, ++cur_state});
+                    U_entry3.second = cur_state;
                 }
+
+                if (vec_find(T.first, data.leafCount))
+                    Fstates.push_back(T.second);
+                if (vec_find(U, data.leafCount))
+                    Fstates.push_back(cur_state);
+                
+                Dtran.insert({{T.second, leaf.first}, 
+                    U_entry3.second});
             }
         }
     }
