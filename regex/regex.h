@@ -1,20 +1,44 @@
 #pragma once
+#include <cstddef>
 #include <string>
 #include "../ast/ast.h"
 #include "../dfa_sets/dfa_sets.h"
 
 class Regex {
 
+DFA dfa;
+
 public:
-    void compile(std::string regex) {
+
+    Regex(const std::string &regex) : dfa (compile(regex)) {}
+
+    DFA compile(const std::string &regex) {
         std::string regex_str = Tokenizer().tokenize(regex);
 
         AST ast(regex_str.begin().base());
         ast.printAST();
         ast.printLeafMap();
         DFA_sets sets(ast.getData());
+        //std::cout << sets;
         
-        DFA dfa = sets.makeDFA(ast.getData());
-        dfa.printDFA();
+        DFA _dfa = sets.makeDFA(ast.getData());
+        _dfa.printDFA();
+        return _dfa;
+    }
+
+    bool match(const std::string &regex) {
+
+        auto cur = regex.begin();
+        std::size_t cur_state = 0;
+
+        while (cur != regex.end()) {
+            auto cur_tran = dfa.Dtran.find({cur_state, *cur});
+            if (cur_tran == dfa.Dtran.end()) return false;
+            cur_state = cur_tran->second;
+            cur++;
+        }
+        if (vec_find(dfa.FStates, cur_state)) return true;
+
+        return false;
     }
 };

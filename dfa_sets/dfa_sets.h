@@ -6,8 +6,10 @@ using state = std::vector<std::size_t>;
 using tran_table = std::map<std::pair<std::size_t, char>, std::size_t>;
 using fstates = std::vector<std::size_t>;
 
-class DFA {
+class Regex;
 
+class DFA {
+friend Regex;
 public:
     DFA(tran_table _Dtran, fstates _FStates) : Dtran(_Dtran), FStates(_FStates) {};
 

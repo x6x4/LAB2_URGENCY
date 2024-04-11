@@ -6,5 +6,6 @@ int main() {
     std::string str;
     std::cin >> str;
 
-    Regex().compile(str);
+    auto regex = Regex(str);
+    std::cout << regex.match("abc") << std::endl;
 }
