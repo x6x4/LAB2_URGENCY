@@ -27,7 +27,7 @@ struct ASTdata {
     Node *root = nullptr;
     std::size_t nodeCount = 0;
     std::size_t leafCount = 0;
-    leafMap leaf_map;
+    leafMap char_map;
 };
 
 

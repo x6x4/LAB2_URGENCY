@@ -9,7 +9,7 @@ set (CMAKE_CXX_STANDARD 20)
 set (AUX_FLAGS "-O0 -coverage ")
 
 
-set (CMAKE_CXX_FLAGS "-O2 -std=c++20 -Wall -Wextra -Wpedantic")
+set (CMAKE_CXX_FLAGS "-g -std=c++20 -Wall -Wextra -Wpedantic")
 
 add_subdirectory(common)
 add_subdirectory(ast)

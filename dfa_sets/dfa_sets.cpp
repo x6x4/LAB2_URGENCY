@@ -19,7 +19,7 @@ DFA DFA_sets::makeDFA(const ASTdata& data) {
     state s0 = firstpos.at(data.root->num-1);
     
     std::vector<std::pair<state, std::size_t>> unmarked = {{s0, 0}};
-    std::vector<std::pair<state, std::size_t>> marked = {{s0, 0}};
+    std::vector<std::pair<state, std::size_t>> marked;
 
     tran_table Dtran;
     std::size_t cur_state = 0;
@@ -28,23 +28,23 @@ DFA DFA_sets::makeDFA(const ASTdata& data) {
     
     while (!unmarked.empty()) {
         auto T = *(unmarked.end()-1);
+        if (T.first.size() > 10) break;
         marked.push_back(T);
         unmarked.pop_back();
         
         std::cout << "T:" << T.first << std::endl;
 
-        for (const auto &leaf : data.leaf_map) {
+        for (const auto &char_leaves : data.char_map) {
             state U;
             for (const auto &pos : T.first) {
-                if (vec_find(leaf.second, pos)) {
+                std::cout << "Char leaves:" << char_leaves;
+                if (vec_find(char_leaves.second, pos)) {
                     U += followpos.at(pos-1);
                 }
             }
             std::cout << "U:" << U;
 
             if (!U.empty()) {
-
-                std::cout << "F:" << Fstates;
 
                 auto U_entry = dstates_find(unmarked, U);
                 auto U_entry2 = dstates_find(marked, U);
@@ -54,12 +54,14 @@ DFA DFA_sets::makeDFA(const ASTdata& data) {
                     U_entry3.second = cur_state;
                 }
 
-                if (vec_find(T.first, data.leafCount))
+                if (vec_find(T.first, data.leafCount) && !vec_find(Fstates, T.second))
                     Fstates.push_back(T.second);
-                if (vec_find(U, data.leafCount))
+                if (vec_find(U, data.leafCount) && !vec_find(Fstates, cur_state))
                     Fstates.push_back(cur_state);
+
+                std::cout << "F:" << Fstates;
                 
-                Dtran.insert({{T.second, leaf.first}, 
+                Dtran.insert({{T.second, char_leaves.first}, 
                     U_entry3.second});
             }
         }

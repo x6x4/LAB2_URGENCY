@@ -7,5 +7,5 @@ int main() {
     std::cin >> str;
 
     auto regex = Regex(str);
-    std::cout << regex.match("abc") << std::endl;
+    //std::cout << regex.match("abc") << std::endl;
 }

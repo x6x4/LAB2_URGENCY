@@ -19,7 +19,7 @@ public:
         ast.printAST();
         ast.printLeafMap();
         DFA_sets sets(ast.getData());
-        //std::cout << sets;
+        std::cout << sets;
         
         DFA _dfa = sets.makeDFA(ast.getData());
         _dfa.printDFA();

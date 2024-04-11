@@ -45,11 +45,11 @@ Node *AST::insert(Node* _left, Node* _right, char oper) {
     if (non_special(oper)) {
         newNode->true_num = ++data.leafCount;
     
-        auto entry = data.leaf_map.find(oper);
-        if (entry != data.leaf_map.end()) {
+        auto entry = data.char_map.find(oper);
+        if (entry != data.char_map.end()) {
             entry->second.push_back(newNode->true_num);
         } else {
-            data.leaf_map.insert({oper, {newNode->true_num}});
+            data.char_map.insert({oper, {newNode->true_num}});
         }
     }
     return newNode;
@@ -115,7 +115,7 @@ std::pair<Node*, char*> AST::parse_R(char* start) {
 //  DEBUG OUTPUT
 
 void AST::printLeafMap() {
-    std::cout << data.leaf_map << std::endl;
+    std::cout << data.char_map << std::endl;
 }
 
 //  GRAPHVIZ
