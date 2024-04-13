@@ -1,11 +1,12 @@
 #pragma once
 #include <cstddef>
 #include <map>
+#include <set>
 #include <vector>
 #include <ostream>
 #include <algorithm>
 
-using leafMap = std::map<char, std::vector<std::size_t>>;
+using leafMap = std::map<char, std::set<std::size_t>>;
 
 struct Node {
 	Node* left = nullptr;
@@ -34,16 +35,27 @@ struct ASTdata {
 //  USEFUL FUNCTIONS
 
 template<typename T> 
-std::vector<T> operator+ 
-(std::vector<T> v1, std::vector<T> v2) {
-    v1.insert(v1.end(), v2.begin(), v2.end());
-    return v1;
+std::set<T> operator+ 
+(std::set<T> s1, std::set<T> s2) {
+    s1.insert(s2.begin(), s2.end());
+    return s1;
 }
 
 template<typename T> 
 void operator+= 
-(std::vector<T> &v1, std::vector<T> &v2) {
-    v1 = v1+v2;
+(std::set<T> &s1, std::set<T> &s2) {
+    s1 = s1+s2;
+}
+
+template<typename T> 
+std::ostream &operator<<
+(std::ostream &os, const std::set<T> &set) {
+    os << ' ';
+    for (const T &e : set) {
+        os << e << ' ';
+    }
+    if (!set.size()) os << "NULL";
+    return os << '\n';
 }
 
 template<typename T> 
@@ -53,8 +65,10 @@ std::ostream &operator<<
     for (const T &e : vec) {
         os << e << ' ';
     }
+    if (!vec.size()) os << "NULL";
     return os << '\n';
 }
+
 
 template<typename T1, typename T2>
 std::ostream &operator<<
@@ -70,10 +84,5 @@ std::ostream &operator<<
         os << e.first << ' ' << e.second << '\n';
     }
     return os << '\n';
-}
-
-template<typename T>
-bool vec_find (const std::vector<T>& vec, const T& key) {
-    return (std::find(vec.begin(), vec.end(), key) != vec.end());
 }
 

@@ -47,7 +47,7 @@ Node *AST::insert(Node* _left, Node* _right, char oper) {
     
         auto entry = data.char_map.find(oper);
         if (entry != data.char_map.end()) {
-            entry->second.push_back(newNode->true_num);
+            entry->second.insert(newNode->true_num);
         } else {
             data.char_map.insert({oper, {newNode->true_num}});
         }

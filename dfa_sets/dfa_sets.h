@@ -1,10 +1,11 @@
 #pragma once
 #include "../common/common.h"
+#include <set>
 
 
-using state = std::vector<std::size_t>;
+using state = std::set<std::size_t>;
 using tran_table = std::map<std::pair<std::size_t, char>, std::size_t>;
-using fstates = std::vector<std::size_t>;
+using fstates = std::set<std::size_t>;
 
 class Regex;
 
@@ -28,7 +29,7 @@ private:
 };
 
 
-using node_list = std::vector<std::size_t>;
+using node_list = std::set<std::size_t>;
 
 class DFA_sets {
 
@@ -51,11 +52,11 @@ private:
     std::vector<bool> nullable;
     void nullable_traversal (Node *start);
     std::vector<node_list> firstpos;
-    void firstpos_traversal (Node *start, Node *_root);
+    void firstpos_traversal (Node *start);
     std::vector<node_list> lastpos;
-    void lastpos_traversal (Node *start, Node *_root);
+    void lastpos_traversal (Node *start);
     std::vector<node_list> followpos;
-    void followpos_traversal (Node *start, Node *_root);
+    void followpos_traversal (Node *start);
 
     friend std::ostream &operator<< (std::ostream &os, const DFA_sets &sets);
 };

@@ -19,7 +19,6 @@ public:
         ast.printAST();
         ast.printLeafMap();
         DFA_sets sets(ast.getData());
-        std::cout << sets;
         
         DFA _dfa = sets.makeDFA(ast.getData());
         _dfa.printDFA();
@@ -37,7 +36,7 @@ public:
             cur_state = cur_tran->second;
             cur++;
         }
-        if (vec_find(dfa.FStates, cur_state)) return true;
+        if (dfa.FStates.find(cur_state) != dfa.FStates.end()) return true;
 
         return false;
     }

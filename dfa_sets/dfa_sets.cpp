@@ -2,24 +2,26 @@
 #include <cstddef>
 #include <fstream>
 #include <iostream>
+#include <stdexcept>
 #include <utility>
 #include <vector>
 
-using dstates = std::vector<std::pair<state, std::size_t>>;
+using dstates = std::map<state, std::size_t>;
 
-std::pair<bool, std::size_t> dstates_find (const dstates& _dstates, const state& key) {
-    for (const auto &d : _dstates) {
-        if (d.first == key) return {true, d.second};
-    }
-    return {false, 0};
+std::pair<bool, std::size_t> dstates_find 
+    (const dstates& _dstates, const state& key) {
+        for (const auto &d : _dstates) {
+            if (d.first == key) return {true, d.second};
+        }
+        return {false, 0};
 }
 
 DFA DFA_sets::makeDFA(const ASTdata& data) {
 
     state s0 = firstpos.at(data.root->num-1);
     
-    std::vector<std::pair<state, std::size_t>> unmarked = {{s0, 0}};
-    std::vector<std::pair<state, std::size_t>> marked;
+    std::map<state, std::size_t> unmarked = {{s0, 0}};
+    std::map<state, std::size_t> marked;
 
     tran_table Dtran;
     std::size_t cur_state = 0;
@@ -27,42 +29,39 @@ DFA DFA_sets::makeDFA(const ASTdata& data) {
     std::cout << "Followpos:\n" << followpos << std::endl;
     
     while (!unmarked.empty()) {
-        auto T = *(unmarked.end()-1);
-        if (T.first.size() > 10) break;
-        marked.push_back(T);
-        unmarked.pop_back();
+        auto cur_state_entry = *(unmarked.begin());
+        if (cur_state_entry.first.size() > 10) break;
+        marked.insert(cur_state_entry);
+        unmarked.erase(cur_state_entry.first);
         
-        std::cout << "T:" << T.first << std::endl;
+        std::cout << "T:" << cur_state_entry.first << std::endl;
 
-        for (const auto &char_leaves : data.char_map) {
+        for (const auto &cur_char_leaves : data.char_map) {
             state U;
-            for (const auto &pos : T.first) {
-                std::cout << "Char leaves:" << char_leaves;
-                if (vec_find(char_leaves.second, pos)) {
-                    U += followpos.at(pos-1);
+            std::cout << "Char leaves:" << cur_char_leaves;
+            for (const auto &cur_leave : cur_state_entry.first) {
+                if (cur_char_leaves.second.find(cur_leave) != cur_char_leaves.second.end()) {
+                    U += followpos.at(cur_leave-1);
                 }
             }
             std::cout << "U:" << U;
 
             if (!U.empty()) {
 
-                auto U_entry = dstates_find(unmarked, U);
-                auto U_entry2 = dstates_find(marked, U);
-                auto U_entry3 = U_entry2.first ? U_entry2 : U_entry;
-                if (!U_entry3.first) {
-                    unmarked.push_back({U, ++cur_state});
-                    U_entry3.second = cur_state;
-                }
+                auto U_entry = marked.find(U);
 
-                if (vec_find(T.first, data.leafCount) && !vec_find(Fstates, T.second))
-                    Fstates.push_back(T.second);
-                if (vec_find(U, data.leafCount) && !vec_find(Fstates, cur_state))
-                    Fstates.push_back(cur_state);
+                if (U_entry == marked.end())
+                    U_entry = unmarked.insert({U, ++cur_state}).first;
+
+                if (cur_state_entry.first.find(data.leafCount) != cur_state_entry.first.end())
+                    Fstates.insert(cur_state_entry.second);
+                if (U.find(data.leafCount) != U.end())
+                    Fstates.insert(cur_state);
 
                 std::cout << "F:" << Fstates;
                 
-                Dtran.insert({{T.second, char_leaves.first}, 
-                    U_entry3.second});
+                Dtran.insert({{cur_state_entry.second, cur_char_leaves.first}, 
+                    U_entry->second});
             }
         }
     }
@@ -77,11 +76,11 @@ void DFA_sets::calculate(Node *_root) {
     Node *leftmost = get_leftmost(_root);
     nullable_traversal(leftmost);
 
-    try { firstpos_traversal(leftmost, _root); }
+    try { firstpos_traversal(leftmost); }
     catch (std::runtime_error &err) {}
-    try { lastpos_traversal(leftmost, _root); }
+    try { lastpos_traversal(leftmost); }
     catch (std::runtime_error &err) {}
-    try { followpos_traversal(leftmost, _root); }
+    try { followpos_traversal(leftmost); }
     catch (std::runtime_error &err) {}
 }
 
@@ -99,23 +98,22 @@ void DFA_sets::nullable_traversal (Node *start) {
         nullable_traversal(get_leftmost(start->par->right));
 
     nullable_traversal(start->par);
-
-    return;
 }
 
-void DFA_sets::firstpos_traversal (Node *start, Node *_root) {
+void DFA_sets::firstpos_traversal (Node *start) {
 
     if (!start) return; 
 
-    if (is_leaf(start)) firstpos.at(start->num-1).push_back(start->true_num);
+    if (is_leaf(start)) firstpos.at(start->num-1).insert(start->true_num);
 
     else if (start->op == '*') {
         Node* child = get_nonnull_child(start);
         firstpos.at(start->num-1) = firstpos.at(child->num - 1);
     }
 
-    else if (start->op == '|') firstpos.at(start->num-1) = 
-        firstpos.at(start->left->num-1) + firstpos.at(start->right->num-1);
+    else if (start->op == '|') 
+        firstpos.at(start->num-1) = 
+            firstpos.at(start->left->num-1) + firstpos.at(start->right->num-1);
 
     else if (start->op == '_') {
 
@@ -126,21 +124,17 @@ void DFA_sets::firstpos_traversal (Node *start, Node *_root) {
             firstpos.at(start->num-1) = firstpos.at(start->left->num-1);
     }
 
-    if (start == _root) {
-        throw std::runtime_error("выходим");
-    }
-
     if (start->par && start == start->par->left) 
-        firstpos_traversal(get_leftmost(start->par->right), _root);
+        firstpos_traversal(get_leftmost(start->par->right));
 
-    firstpos_traversal(start->par, _root);
+    firstpos_traversal(start->par);
 }
 
-void DFA_sets::lastpos_traversal (Node *start, Node *_root) {
+void DFA_sets::lastpos_traversal (Node *start) {
 
     if (!start) return; 
 
-    if (is_leaf(start)) lastpos.at(start->num-1).push_back(start->true_num);
+    if (is_leaf(start)) lastpos.at(start->num-1).insert(start->true_num);
 
     else if (start->op == '*') {
         Node* child = get_nonnull_child(start);
@@ -159,17 +153,13 @@ void DFA_sets::lastpos_traversal (Node *start, Node *_root) {
             lastpos.at(start->num-1) = lastpos.at(start->right->num-1);
     }
 
-    if (start == _root) {
-        throw std::runtime_error("выходим");
-    }
-
     if (start->par && start == start->par->left) 
-        lastpos_traversal(get_leftmost(start->par->right), _root);
+        lastpos_traversal(get_leftmost(start->par->right));
 
-    lastpos_traversal(start->par, _root);
+    lastpos_traversal(start->par);
 }
 
-void DFA_sets::followpos_traversal (Node *start, Node *_root) {
+void DFA_sets::followpos_traversal (Node *start) {
 
     if (!start) return; 
 
@@ -183,14 +173,10 @@ void DFA_sets::followpos_traversal (Node *start, Node *_root) {
             followpos.at(entry-1) += firstpos.at(start->num-1);
     }
 
-    if (start == _root) {
-        throw std::runtime_error("выходим");
-    }
-
     if (start->par && start == start->par->left) 
-        followpos_traversal(get_leftmost(start->par->right), _root);
+        followpos_traversal(get_leftmost(start->par->right));
 
-    followpos_traversal(start->par, _root);
+    followpos_traversal(start->par);
 }
 
 
