@@ -3,9 +3,12 @@
 #include <iostream>
 
 int main() {
-    std::string str;
+    std::string str, str_to_match;
     std::cin >> str;
 
     auto regex = Regex(str);
-    //std::cout << regex.match("abc") << std::endl;
+    while (1) {
+        std::cin >> str_to_match;
+        std::cout << regex.match(str_to_match) << std::endl;
+    }
 }

@@ -12,7 +12,8 @@ class Regex;
 class DFA {
 friend Regex;
 public:
-    DFA(tran_table _Dtran, fstates _FStates) : Dtran(_Dtran), FStates(_FStates) {};
+    DFA(tran_table _Dtran, fstates _FStates) 
+        : Dtran(std::move(_Dtran)), FStates(std::move(_FStates)) {};
 
     void printDFA();
 

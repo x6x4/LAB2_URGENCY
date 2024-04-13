@@ -30,7 +30,7 @@ DFA DFA_sets::makeDFA(const ASTdata& data) {
     
     while (!unmarked.empty()) {
         auto cur_state_entry = *(unmarked.begin());
-        if (cur_state_entry.first.size() > 10) break;
+        //if (cur_state_entry.first.size() > 10) break;
         marked.insert(cur_state_entry);
         unmarked.erase(cur_state_entry.first);
         
@@ -51,6 +51,7 @@ DFA DFA_sets::makeDFA(const ASTdata& data) {
                 auto U_entry = marked.find(U);
 
                 if (U_entry == marked.end())
+                    //  emplace
                     U_entry = unmarked.insert({U, ++cur_state}).first;
 
                 if (cur_state_entry.first.find(data.leafCount) != cur_state_entry.first.end())
@@ -68,20 +69,17 @@ DFA DFA_sets::makeDFA(const ASTdata& data) {
 
     std::cout << std::endl << Dtran;
 
-    return DFA(Dtran, Fstates);
+    return DFA(std::move(Dtran), std::move(Fstates));
 }
 
 
 void DFA_sets::calculate(Node *_root) {
     Node *leftmost = get_leftmost(_root);
+    
     nullable_traversal(leftmost);
-
-    try { firstpos_traversal(leftmost); }
-    catch (std::runtime_error &err) {}
-    try { lastpos_traversal(leftmost); }
-    catch (std::runtime_error &err) {}
-    try { followpos_traversal(leftmost); }
-    catch (std::runtime_error &err) {}
+    firstpos_traversal(leftmost); 
+    lastpos_traversal(leftmost); 
+    followpos_traversal(leftmost); 
 }
 
 void DFA_sets::nullable_traversal (Node *start) {
@@ -104,16 +102,19 @@ void DFA_sets::firstpos_traversal (Node *start) {
 
     if (!start) return; 
 
-    if (is_leaf(start)) firstpos.at(start->num-1).insert(start->true_num);
+    if (is_leaf(start)) {
+        firstpos.at(start->num-1).insert(start->true_num);
+    }
 
     else if (start->op == '*') {
         Node* child = get_nonnull_child(start);
         firstpos.at(start->num-1) = firstpos.at(child->num - 1);
     }
 
-    else if (start->op == '|') 
+    else if (start->op == '|') {
         firstpos.at(start->num-1) = 
             firstpos.at(start->left->num-1) + firstpos.at(start->right->num-1);
+    }
 
     else if (start->op == '_') {
 
@@ -134,15 +135,19 @@ void DFA_sets::lastpos_traversal (Node *start) {
 
     if (!start) return; 
 
-    if (is_leaf(start)) lastpos.at(start->num-1).insert(start->true_num);
+    if (is_leaf(start)) {
+        lastpos.at(start->num-1).insert(start->true_num);
+    }
 
     else if (start->op == '*') {
         Node* child = get_nonnull_child(start);
         lastpos.at(start->num-1) = lastpos.at(child->num - 1);
     }
 
-    else if (start->op == '|') lastpos.at(start->num-1) = 
-        lastpos.at(start->left->num-1) + lastpos.at(start->right->num-1);
+    else if (start->op == '|') {
+        lastpos.at(start->num-1) = 
+            lastpos.at(start->left->num-1) + lastpos.at(start->right->num-1);
+    }
 
     else if (start->op == '_') {
 
@@ -164,12 +169,12 @@ void DFA_sets::followpos_traversal (Node *start) {
     if (!start) return; 
 
     else if (start->op == '_') {
-        for (auto entry : lastpos.at(start->left->num-1))
+        for (auto &&entry : lastpos.at(start->left->num-1))
             followpos.at(entry-1) += firstpos.at(start->right->num-1);
     }
 
     else if (start->op == '*') {
-        for (auto entry : lastpos.at(start->num-1))
+        for (auto &&entry : lastpos.at(start->num-1))
             followpos.at(entry-1) += firstpos.at(start->num-1);
     }
 

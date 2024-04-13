@@ -28,6 +28,7 @@ struct ASTdata {
     Node *root = nullptr;
     std::size_t nodeCount = 0;
     std::size_t leafCount = 0;
+    //  biective table
     leafMap char_map;
 };
 

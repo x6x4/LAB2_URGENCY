@@ -25,11 +25,15 @@ public:
         return _dfa;
     }
 
+    //  method dfa - transition by symbol, return cur_state
+    //  check for end state
+
     bool match(const std::string &regex) {
 
         auto cur = regex.begin();
         std::size_t cur_state = 0;
 
+        //  iterative for 
         while (cur != regex.end()) {
             auto cur_tran = dfa.Dtran.find({cur_state, *cur});
             if (cur_tran == dfa.Dtran.end()) return false;

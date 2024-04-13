@@ -14,6 +14,7 @@ bool non_special(char ch) {
     return !is_unary(ch) && !is_binary(ch) && !is_paren(ch);
 }
 
+// const &
 std::string Tokenizer::tokenize(std::string my_regex) {
     std::string tokenized;
 
@@ -39,11 +40,14 @@ std::string Tokenizer::tokenize(std::string my_regex) {
 //  GRAMMAR - make AST
 
 Node *AST::insert(Node* _left, Node* _right, char oper) {
+    //  smart ptr
     Node *newNode = new Node(_left, _right, oper, ++data.nodeCount);
+    
     if (_left) _left->par = newNode;
     if (_right) _right->par = newNode;
     if (non_special(oper)) {
         newNode->true_num = ++data.leafCount;
+        //  set? unordered
     
         auto entry = data.char_map.find(oper);
         if (entry != data.char_map.end()) {
