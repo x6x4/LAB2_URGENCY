@@ -1,4 +1,6 @@
 
+The 2nd lab in TA Mephi course (WIP)
+
 Parser regularochek.
 
 Makes AST from regex and then converts it to minDFA.
